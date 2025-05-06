@@ -2,6 +2,7 @@ import torch.nn as nn
 from .Attention import MultiHeadAdjAttentionLayer
 from .FeedForward import PositionwiseFeedForwardLayer
 from .Embedding import PositionalEmbedding, TokenEmbedding, BERTEmbedding
+import torch 
 
 class TransformerBlock(nn.Module):
     """
@@ -39,7 +40,7 @@ class TransformerBlock(nn.Module):
     
         return x,attns
 
-class BERT(nn.Module):
+class SAPP_Model(nn.Module):
     """
     BERT model : Bidirectional Encoder Representations from Transformers.
     """
@@ -73,7 +74,7 @@ class BERT(nn.Module):
         if mask != None:
             mask = mask.unsqueeze(1)
         if rsa_mask != None:
-            rsa_mask = str_mask.unsqueeze(1)
+            rsa_mask = rsa_mask.unsqueeze(1)
             
         x = self.embedding(x)
         x_RSA = self.RSA_linear(x_RSA)
@@ -81,7 +82,7 @@ class BERT(nn.Module):
         layer2_attns = ''
         # running over multiple transformer blocks
         for i, transformer in enumerate(self.transformer_blocks):
-            x,attns = transformer.forward(x,x_RSA, mask,str_mask)
+            x,attns = transformer.forward(x,x_RSA, mask,rsa_mask)
             if i == 0:
                 layer1_attns = attns
             else:

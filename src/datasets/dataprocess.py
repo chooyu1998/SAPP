@@ -1,4 +1,5 @@
 import torch
+from tqdm import tqdm 
 import numpy as np
 
 aa_dict = {'A': 1,'G': 2,'V': 3,'S': 4,'E': 5,'R': 6,'T': 7,
@@ -12,18 +13,18 @@ def torch_binning(data,max_val,steps):
     
     return digitized,one_hot
 
-def get_Data(data_list,protein_dic,rsa_dic): #list, dict, dict
+def get_Data(data_info,protein_dic,rsa_dic): #list, dict, dict
     data_list = []
     rsa_list = []
     mask_list =[]
     rsamask_list = []
     y_list = []
 
-    for li in tqdm(data_list):
+    for li in tqdm(data_info):
         protein = li[0]
         site = li[1]
         label = li[2]
-        seq = protein_dic[protein]['seq']
+        seq = protein_dic[protein]
         RSA = rsa_dic[protein]
         window =25
         onehot = np.zeros(51)
@@ -50,14 +51,14 @@ def get_Data(data_list,protein_dic,rsa_dic): #list, dict, dict
         rsamask_list.append(np.expand_dims(rsa_mask,-1)*np.expand_dims(rsa_mask,-1).T)
         y_list.append(label)
     
-    data_list = np.array(data_list,dtype='int64')
-    data_list = torch.LongTensor(data_list)
-    y_list = torch.tensor(np.array(y_list))
-    rsa_list = torch.tensor(np.array(rsa_list))
+    data_list = torch.tensor(np.array(data_list), dtype=torch.long)
+    y_list = torch.tensor(np.array(y_list), dtype=torch.float32)
+    rsa_list = torch.tensor(np.array(rsa_list), dtype=torch.float32)
     rsamask_list = torch.BoolTensor(rsamask_list)
     mask_list = torch.BoolTensor(mask_list)
     
     _,rsa_list = torch_binning(rsa_list,1, 20)
+    rsa_list = torch.tensor(np.array(rsa_list), dtype=torch.float32)
 
     return data_list,rsa_list,mask_list,rsamask_list,y_list
 
