@@ -13,7 +13,7 @@ def torch_binning(data,max_val,steps):
     
     return digitized,one_hot
 
-def get_Data(data_info,protein_dic,rsa_dic): #list, dict, dict
+def get_Data(data_info,protein_dic,rsa_dic,window):
     data_list = []
     rsa_list = []
     mask_list =[]
@@ -26,12 +26,11 @@ def get_Data(data_info,protein_dic,rsa_dic): #list, dict, dict
         label = li[2]
         seq = protein_dic[protein]
         RSA = rsa_dic[protein]
-        window =25
-        onehot = np.zeros(51)
-        rsa_feat = np.zeros(51)
+        onehot = np.zeros(window*2+1)
+        rsa_feat = np.zeros(window*2+1)
         
-        mask = np.zeros(51)
-        rsa_mask = np.zeros(51)
+        mask = np.zeros(window*2+1)
+        rsa_mask = np.zeros(window*2+1)
         start_idx = max(0,site-window)
         end_idx = min(site+window,len(seq)-1)
         j = window - (site-start_idx)

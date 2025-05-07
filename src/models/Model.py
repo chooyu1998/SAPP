@@ -44,7 +44,7 @@ class SAPP_Model(nn.Module):
     """
     BERT model : Bidirectional Encoder Representations from Transformers.
     """
-    def __init__(self, vocab_size,hidden,feed_forward_dim, n_layers, attn_heads,device, dropout=0.1):
+    def __init__(self, vocab_size,window,hidden,feed_forward_dim, n_layers, attn_heads,device, dropout=0.2):
         """
         :param vocab_size: vocab_size of total words
         :param hidden: BERT model hidden size
@@ -58,7 +58,8 @@ class SAPP_Model(nn.Module):
         self.n_layers = n_layers
         self.attn_heads = attn_heads
         self.device = device
-        
+        self.window_size = window
+
         # embedding for BERT, sum of positional, segment, token embeddings
         self.embedding = BERTEmbedding(vocab_size=vocab_size, embed_size=hidden)
         self.RSA_linear = nn.Linear(21,128)
@@ -67,7 +68,8 @@ class SAPP_Model(nn.Module):
         self.transformer_blocks = nn.ModuleList(
             [TransformerBlock(hidden, attn_heads, feed_forward_dim, dropout,device) for _ in range(n_layers)])
         
-        self.output_linear = nn.Linear(51*256,1)
+        self.linear_input = self.window_size*2+1
+        self.output_linear = nn.Linear(self.linear_input*256,1)
         
     def forward(self,x,x_RSA,mask=None,rsa_mask=None):
         
@@ -89,7 +91,7 @@ class SAPP_Model(nn.Module):
                 layer2_attns = attns
             
         
-        x = x.reshape(-1,51*256)
+        x = x.reshape(-1,self.linear_input*256)
         
         output = self.output_linear(x)  
 

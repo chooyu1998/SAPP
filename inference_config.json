@@ -1,0 +1,10 @@
+{
+    "embedding_dim": 22,
+    "hidden": 256,
+    "n_layers": 2,
+    "attn_heads": 4,
+    "feed_forward_dim": 758,
+    "device": "cuda:0",
+    "window":25,
+    "batch_size": 128
+  }

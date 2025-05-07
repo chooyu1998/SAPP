@@ -6,10 +6,10 @@ import warnings
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+import json
 from collections import defaultdict
 from torch.utils.data import DataLoader, TensorDataset
 
-# 상대 경로 설정
 sys.path.append("../")
 
 from src.datasets.dataprocess import get_Data
@@ -18,7 +18,6 @@ from src.models.Model import SAPP_Model
 from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB.PDBParser import PDBParser
 
-# DSSP 경고 무시
 warnings.filterwarnings("ignore", category=UserWarning, module="Bio.PDB.DSSP")
 
 def load_and_group_data(input_file, ptm_to_residue):
@@ -59,29 +58,37 @@ def load_and_group_data(input_file, ptm_to_residue):
 
     return grouped_info, rsa_dict, seq_dict
 
-def run_inference(input_path, output_path, batch_size, device):
+def run_inference(input_path, output_path, config):
     ptm_to_residue = {
         'SAPPPhos': ['S', 'T'], 'SAPPmethylR': ['R'], 'SAPPphosY': ['Y'],
         'SAPPsumoK': ['K'], 'SAPPmethylK': ['K'],
         'SAPPacetylK': ['K'], 'SAPPubiquitinK': ['K']
     }
 
+    device = config.get("device","cpu")
+    batch_size = config.get("batch_size", 128)
+
     grouped_info, rsa_dict, seq_dict = load_and_group_data(input_path, ptm_to_residue)
     all_results = []
 
     for ptm_type, info_list in grouped_info.items():
         print(f"Running inference for {ptm_type}...")
-
+        window = config.get("window", 25)
         seq_tensor, rsa_tensor, mask_tensor, rsa_mask_tensor, label_tensor = get_Data(
-            info_list, seq_dict[ptm_type], rsa_dict[ptm_type]
+            info_list, seq_dict[ptm_type], rsa_dict[ptm_type], window
         )
 
         dataset = TensorDataset(seq_tensor, rsa_tensor, mask_tensor, rsa_mask_tensor, label_tensor)
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
         model = SAPP_Model(
-            vocab_size=22, hidden=256, n_layers=2, attn_heads=4,
-            feed_forward_dim=758, device=device
+            vocab_size=config.get("embedding_dim", 22),
+            window = window, 
+            hidden=config.get("hidden", 256),
+            n_layers=config.get("n_layers", 2),
+            attn_heads=config.get("attn_heads", 4),
+            feed_forward_dim=config.get("feed_forward_dim", 758),
+            device=device
         ).to(device)
 
         pred_list = []
@@ -120,10 +127,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Run inference on PTM data using SAPP")
     parser.add_argument('--input', type=str, required=True, help='Input .txt file with inference data')
     parser.add_argument('--output', type=str, default='inference_result.csv', help='Output CSV path')
-    parser.add_argument('--batch_size', type=int, default=128, help='Batch size for DataLoader')
-    parser.add_argument('--device', type=str, default='cuda:0', help='Device to run model on')
+    parser.add_argument('--config', type=str,required=True, help='Path to config JSON file')
     return parser.parse_args()
 
 if __name__ == '__main__':
     args = parse_args()
-    run_inference(args.input, args.output, args.batch_size, args.device)
+    with open(args.config) as f:
+        config = json.load(f)
+
+    run_inference(args.input, args.output, config)
