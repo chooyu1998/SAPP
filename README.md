@@ -41,7 +41,7 @@ Q67890    MSEQNNTEMTFQIQRIYTKDISFEAPNAPHVFQKDWMAKH    17    0    SAPPmethylK    
 python inference.py \
   --input example_folder/inference_input_wRSA.txt \
   --output example_folder/result.csv \
-  --device cuda:0
+  --config example_folder/inference_config.json \
 ```
 
 ### Optional Arguments
