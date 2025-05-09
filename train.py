@@ -111,6 +111,17 @@ def train_model(train_loader, val_loader, model_cfg, train_cfg, path_cfg, device
         device=device
     ).to(device)
 
+    # Load pretrained weights if provided
+    if "pretrained_model_path" in train_cfg:
+        print(f"Loading pretrained weights from {train_cfg['pretrained_model_path']}")
+        model.load_state_dict(torch.load(train_cfg["pretrained_model_path"], map_location=device), strict=False)
+
+        if train_cfg.get("freeze_backbone", False):
+            print("Freezing model backbone parameters...")
+            for name, param in model.named_parameters():
+                if "classifier" not in name:
+                    param.requires_grad = False
+                    
     optimizer = optim.AdamW(model.parameters(), lr=train_cfg["learning_rate"], weight_decay=train_cfg["weight_decay"])
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=train_cfg["schedular_Tmax"], eta_min=train_cfg["schedular_eatmin"])
     criterion = nn.BCELoss()

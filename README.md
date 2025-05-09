@@ -4,82 +4,187 @@ SAPP is a transformer-based model for post-translational modification (PTM) site
 
 ![finetuningarch_new](https://github.com/user-attachments/assets/5d68237d-892d-4256-8aa0-32bd24298e1b)
 
+---
 
+- [Supported PTM and Kinase Types](#supported-ptm-and-kinase-types)
+- [Installation](#installation)
+- [Inference](#inference)
+  - [Required Input Files (Inference)](#required-input-files-inference)
+  - [Configuration File (Inference)](#configuration-file-inference)
+  - [Output format](#output-format)
+  - [Command](#command)
+- [Training](#inference)
+  - [Required Input Files (Training)](#required-input-files-training)
+  - [Configuration File (Training)](#configuration-file-training)
+---
+
+## Supported PTM and Kinase Types
+
+- SAPP supports 7 PTM types prediction: 
+  - SAPPphos: phosphorylation (S/T)
+  - SAPP-phosY: phosphorylation (Y)
+  - SAPP-sumoK: sumoylation (K)
+  - SAPP-methylK: methylation (K)
+  - SAPP-acetylK: acetylation (K)
+  - SAPP-ubiquitinK: ubiquitination (K)
+    
+- SAPP supports 8 Kinase-specific types prediction:
+  - SAPP-CMGC, SAPP-CAMK, SAPP-CDK, SAPP-AGC, SAPP-MAPK, SAPP-PKA, SAPP-PKC, SAPP-CK2
 
 ---
 
-## ✅ Features
+## Installation
 
-- Supports 7 PTM types: phosphorylation (S/Y), methylation (K/R), acetylation (K), ubiquitination (K), SUMOylation (K)
-- Supports 8 Kinase-specific types: CMGC, CAMK, CDK, AGC, MAPK, PKA, PKC, CK2
-- Accepts RSA input in `.npy`, `.cif`, or `.pdb` formats
-- Automatically computes RSA from AF structure files if `.npy` not provided
-- Multi-checkpoint ensemble prediction
-- GPU acceleration supported
+Install basic dependencies:
 
----
-
-## 📁 Input Format
-
-A tab-separated `.txt` file with the following columns:
-
-```text
-ProteinID    Sequence    Site    Label    PTMType    RSA_or_AF_path
+```bash
+conda env create -f environment.yml
+conda activate sapp-env
 ```
 
-### Example:
-```text
-P12345    MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYR    34    1    SAPPPhos    data/RSA_files/P12345.npy
-Q67890    MSEQNNTEMTFQIQRIYTKDISFEAPNAPHVFQKDWMAKH    17    0    SAPPmethylK    data/AF_files/Q67890.cif
+To use GPU acceleration, install PyTorch separately with:
+
+```bash
+# Example: for CUDA 11.8
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
+
+See [PyTorch official site](https://pytorch.org/get-started/locally/) to choose the right CUDA version.
 
 ---
 
-## 🚀 Inference Usage
+## Inference
+
+To perform inference, you need:
+
+- **Two input data files**
+- **One configuration file**
+
+### Required Input Files (Inference)
+
+| Input File | Description | Format |
+|------------|-------------|--------|
+| **Feature table** | Tab-separated file with protein/PTM features | `.tsv` |
+| **FASTA file** | Protein sequences for each ProteinID | `.fasta` |
+
+#### Feature table (tsv format) 
+
+```tsv
+ProteinID	Site	Label	PTMType	RSA_or_AF_path
+```
+
+| Column | Description |
+|--------|-------------|
+| ProteinID | Unique identifier for the protein |
+| Site | 0-based index of the modified residue |
+| Label | 1 if modified, 0 if not |
+| PTMType | Type of PTM (e.g., SAPPphos, SAPP-methylR) |
+| RSA_or_AF_path | Path to RSA `.npy` file or AlphaFold `.pdb`/`.cif` file (RSA will be computed if `.npy` is not provided) |
+
+--- 
+
+### Configuration File (Inference)
+The third required file is a JSON configuration file that defines paths and runtime parameters:
+
+| Key           | Description |
+|----------------|-------------|
+| `input_path`   | Path to the `.tsv` file containing PTM site information. See [TSV Format](#1-tsv-format) for column details. |
+| `fasta_path`   | Path to the `.fasta` file containing the full protein sequences corresponding to the `ProteinID`s in the input file. Used for verifying or extracting context windows, and for matching AlphaFold structure files to their sequences. |
+| `output_path`  | Path to the output file where prediction results will be saved. |
+| `default_config`  | Dictionary of default hyperparameters used for all models unless overridden  |
+| `ptm_configs`  | Dictionary of model-specific configurations for each PTM type |
+
+- `ptm_configs`: Dictionary of PTM-specific settings
+  - Each key (e.g. `SAPPphos`) **must match the `PTMType` in the input `.tsv` file**
+  - The system uses `model_paths` to load checkpoints
+  - If a PTM entry overrides config values (like `hidden_size`), they replace the defaults for that model
+  - User can add their own PTM model names to this dictionary, as long as they match corresponding `PTMType` values in the input `.tsv` file.
+
+--- 
+
+### Output Format
+
+The output `.csv` file contains the following columns:
+
+| Column     | Description                                                                 |
+|------------|-----------------------------------------------------------------------------|
+| `ProteinID` | Identifier of the protein containing the modified residue                 |
+| `Site`      | 0-based index of the residue in the sequence                              |
+| `Pred`      | Predicted probability (between 0 and 1) of modification at the given site |
+| `Label`     | Ground truth label (1 if modified, 0 if not)                              |
+| `PTMType`   | Type of PTM (e.g., SAPPphos, SAPP-acetylK)                                |
+
+---
+
+### Command
 
 ```bash
 python inference.py \
-  --input example_folder/inference_input_wRSA.txt \
-  --output example_folder/result.csv \
   --config example_folder/inference_config.json \
 ```
 
-### Optional Arguments
-- `--batch_size`: Default = 128
-- `--device`: e.g., `cuda:0` or `cpu`
+The `example_folder/` includes example files:
+- `inference_input_file.tsv`
+- `inference_input_protein.fasta`
+- `inference_config.json`
+
+These files can be used to test the inference pipeline.
+Running inference on this example takes approximately **1 minute** on a standard GPU.
 
 ---
 
-## 📂 Model Checkpoints
+## Training
 
-Organize model weights per PTM type:
-
-```
-SAPP/
-└── data/
-    └── models/
-        ├── SAPPPhos/
-        │   ├── 1Fold-crossvalidation.pt
-        │   └── 2Fold-crossvalidation.pt
-        └── ...
-```
+To train a model from scratch, prepare a training configuration file and required input data.
 
 ---
 
-## 📦 Installation
+### Required Input Files (Training)
 
-```bash
-pip install -r requirements.txt
-```
+| Input File         | Description                                                      | Format     |
+|--------------------|------------------------------------------------------------------|------------|
+| **Training TSV**   | Peptide/PTM feature file with `ProteinID`, `Site`, `Label`, etc. | `.tsv`     |
+| **FASTA File**     | Protein sequences corresponding to the `ProteinID`s              | `.fasta`   |
+| **RSA Directory**  | Folder containing RSA `.npy`                                     | directory  |
+
+> These files should be referenced in the `path_config` section of `train_config.json`.
 
 ---
 
-## 📊 Output Format
+### Configuration File (Training)
 
-The resulting CSV contains:
+The `train_config.json` contains paths, model settings, PTM-specific options, and training parameters.
 
-| ProteinID | Site | Pred | Label | PTMType |
-|-----------|------|------|-------|---------|
-| Q12345    | 34   | 0.88 | 1     | SAPPPhos |
+| Section          | Key                 | Description                                                                 |
+|------------------|---------------------|-----------------------------------------------------------------------------|
+| `path_config`    | `train_data_path`   | Path to training `.tsv` file                                                |
+|                  | `train_fasta_path`  | Path to corresponding protein `.fasta` file                                 |
+|                  | `train_rsa_path`    | Directory with RSA `.npy`                                                   |
+|                  | `weight_save_dir`   | Directory to save trained model weights                                     |
+| `ptm_config`     | `target_residue`    | List of target residues for the PTM type (e.g., `S`, `T`)                   |
+| `model_config`   | `window`            | Sliding window size for input embedding                                     |
+|                  | `embedding_dim`     | Size of amino acid embedding vector                                         |
+|                  | `hidden`            | Hidden layer size                                                           |
+|                  | `n_layers`          | Number of transformer layers                                                |
+|                  | `attn_heads`        | Number of attention heads                                                   |
+|                  | `feed_forward_dim`  | Dimension of feed-forward network                                           |
+| `train_config`   | `epochs`            | Total number of training epochs                                             |
+|                  | `use_KFold`         | Whether to use K-Fold cross-validation (`true` / `false`)                   |
+|                  | `Folds`             | Number of folds for cross-validation                                        |
+|                  | `dropout`           | Dropout rate                                                                |
+|                  | `train_batch_size`  | Batch size during training                                                  |
+|                  | `valid_batch_size`  | Batch size during validation                                                |
+|                  | `learning_rate`     | Learning rate for optimizer                                                 |
+|                  | `weight_decay`      | Weight decay (L2 regularization)                                            |
+|                  | `schedular_Tmax`    | Scheduler maximum cycle length (cosine annealing)                           |
+|                  | `schedular_eatmin`  | Scheduler minimum learning rate                                             |
+|                  | `patient_limit`     | Early stopping patience threshold                                           |
+|                  | `random_seed`       | Seed for reproducibility                                                    |
+|                  | `device`            | Device for training (e.g., `"cuda:0"` or `"cpu"`)                           |
+|                  | `pretrained_model_path`            | (optional) Path to a pretrained model checkpoint to initialize weights                           |
+|                  | `freeze_backbone`            | (optional) if true, freezes the transformer backbone during fine-tuning                           |
+
+
+
 
 
