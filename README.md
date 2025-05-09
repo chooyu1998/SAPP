@@ -61,6 +61,8 @@ To perform inference, you need:
 - **Two input data files**
 - **One configuration file**
 
+---
+
 ### Required Input Files (Inference)
 
 | Input File | Description | Format |
@@ -69,10 +71,6 @@ To perform inference, you need:
 | **FASTA file** | Protein sequences for each ProteinID | `.fasta` |
 
 #### Feature table (tsv format) 
-
-```tsv
-ProteinID	Site	Label	PTMType	RSA_or_AF_path
-```
 
 | Column | Description |
 |--------|-------------|
