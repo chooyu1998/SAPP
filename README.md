@@ -136,8 +136,9 @@ To train a model from scratch, prepare a training configuration file and require
 | Input File         | Description                                                      | Format     |
 |--------------------|------------------------------------------------------------------|------------|
 | **Training TSV**   | Peptide/PTM feature file with `ProteinID`, `Site`, `Label`, etc. | `.tsv`     |
-| **FASTA File**     | Protein sequences corresponding to the `ProteinID`s              | `.fasta`   |
-| **RSA Directory**  | Folder containing RSA `.npy`                                     | directory  |
+| **FASTA File**     | Protein sequences corresponding to the `ProteinID`              | `.fasta`   |
+| **RSA Directory**  | Folder containing RSA .npy files named after `ProteinID` (e.g., P12345.npy)
+                                     | directory  |
 
 > These files should be referenced in the `path_config` section of `train_config.json`.
 
