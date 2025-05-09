@@ -66,7 +66,7 @@ To perform inference, you need:
 | Input File | Description | Format |
 |------------|-------------|--------|
 | **Feature table** | Tab-separated file with protein/PTM features | `.tsv` |
-| **FASTA file** | Protein sequences for each ProteinID | `.fasta` |
+| **FASTA file** | Protein sequences for each `ProteinID` | `.fasta` |
 
 #### Feature table (tsv format) 
 
@@ -135,11 +135,20 @@ To train a model from scratch, prepare a training configuration file and require
 
 | Input File         | Description                                                      | Format     |
 |--------------------|------------------------------------------------------------------|------------|
-| **Training TSV**   | Peptide/PTM feature file with `ProteinID`, `Site`, `Label`, etc. | `.tsv`     |
-| **FASTA File**     | Protein sequences corresponding to the `ProteinID`              | `.fasta`   |
+| **Feature table**   | Tab-separated file with protein/PTM features | `.tsv`     |
+| **FASTA file**     | Protein sequences for each `ProteinID`              | `.fasta`   |
 | **RSA Directory**  | Folder containing RSA .npy files named after `ProteinID` (e.g., P12345.npy)| directory  |
 
 > These files should be referenced in the `path_config` section of `train_config.json`.
+
+#### Feature table (tsv format) 
+
+| Column | Description |
+|--------|-------------|
+| ProteinID | Unique identifier for the protein |
+| Site | 0-based index of the modified residue |
+| Residue | Amino acid (one-letter code) at the modification site |
+| Label | 1 if modified, 0 if not |
 
 ### Configuration File (Training)
 
