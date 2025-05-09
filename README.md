@@ -61,8 +61,6 @@ To perform inference, you need:
 - **Two input data files**
 - **One configuration file**
 
----
-
 ### Required Input Files (Inference)
 
 | Input File | Description | Format |
@@ -79,8 +77,6 @@ To perform inference, you need:
 | Label | 1 if modified, 0 if not |
 | PTMType | Type of PTM (e.g., SAPPphos, SAPP-methylR) |
 | RSA_or_AF_path | Path to RSA `.npy` file or AlphaFold `.pdb`/`.cif` file (RSA will be computed if `.npy` is not provided) |
-
---- 
 
 ### Configuration File (Inference)
 The third required file is a JSON configuration file that defines paths and runtime parameters:
@@ -135,8 +131,6 @@ These example files can be used to test the inference pipeline, which takes abou
 
 To train a model from scratch, prepare a training configuration file and required input data.
 
----
-
 ### Required Input Files (Training)
 
 | Input File         | Description                                                      | Format     |
@@ -146,8 +140,6 @@ To train a model from scratch, prepare a training configuration file and require
 | **RSA Directory**  | Folder containing RSA `.npy`                                     | directory  |
 
 > These files should be referenced in the `path_config` section of `train_config.json`.
-
----
 
 ### Configuration File (Training)
 
