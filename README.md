@@ -30,7 +30,7 @@ SAPP is a transformer-based model for post-translational modification (PTM) site
   - SAPP-ubiquitinK: ubiquitination (K)
     
 - SAPP supports 8 Kinase-specific types prediction:
-  - SAPP-CMGC, SAPP-CAMK, SAPP-CDK, SAPP-AGC, SAPP-MAPK, SAPP-PKA, SAPP-PKC, SAPP-CK2
+  - CMGC, CAMK, CDK, AGC, MAPK, PKA, PKC, CK2
 
 ---
 
