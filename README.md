@@ -2,7 +2,7 @@
 
 SAPP is a transformer-based model for post-translational modification (PTM) site prediction, integrating protein sequence and structural features (RSA).
 
-![finetuningarch_new](https://github.com/user-attachments/assets/5d68237d-892d-4256-8aa0-32bd24298e1b)
+![SAPP_pipeline](https://github.com/user-attachments/assets/6f4d9584-d62e-4d3c-bd39-4b09c45feda8)
 
 ---
 
