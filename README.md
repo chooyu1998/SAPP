@@ -16,6 +16,7 @@ SAPP is a transformer-based model for post-translational modification (PTM) site
 - [Training](#inference)
   - [Required Input Files (Training)](#required-input-files-training)
   - [Configuration File (Training)](#configuration-file-training)
+  - [Command (Training)](#command-training)
 ---
 
 ## Supported PTM and Kinase Types
@@ -120,7 +121,7 @@ The output `.csv` file contains the following columns:
 
 ```bash
 python inference.py \
-  --config example_folder/inference_config.json \
+  --config inference_config.json \
 ```
 
 The `example_folder/` includes example files:
@@ -183,7 +184,12 @@ The `train_config.json` contains paths, model settings, PTM-specific options, an
 |                  | `pretrained_model_path`            | (optional) Path to a pretrained model checkpoint to initialize weights                           |
 |                  | `freeze_backbone`            | (optional) if true, freezes the transformer backbone during fine-tuning                           |
 
+---
 
+### Command
 
-
+```bash
+python train.py \
+  --config train_config.json \
+```
 
