@@ -128,8 +128,7 @@ The `example_folder/` includes example files:
 - `inference_input_protein.fasta`
 - `inference_config.json`
 
-These files can be used to test the inference pipeline.
-Running inference on this example takes approximately **1 minute** on a standard GPU.
+These example files can be used to test the inference pipeline, which takes about 1 minute to run on a single GPU (e.g., RTX 6000).
 
 ---
 
